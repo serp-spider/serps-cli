@@ -1,0 +1,34 @@
+{
+  "authors": [
+    {
+      "name": "Soufiane GHZAL",
+      "homepage": "https://github.com/gsouf"
+    }
+  ],
+
+  "autoload":{
+    "psr-4" : {
+      "SerpsStatus\\"   :   "src/"
+    }
+  },
+
+  "require": {
+    "php": ">=5.5.9",
+    "corneltek/cliframework": "~2.8.1",
+
+    "serps/serps": "dev-master",
+    "serps/search-engine-google": "dev-master",
+
+    "serps/http-client-phantomjs": "dev-master",
+    "serps/http-client-curl": "dev-master"
+  },
+
+  "require-dev":{
+    "squizlabs/php_codesniffer": "~2.5"
+  },
+  
+  "scripts": {
+      "csfix": "yes 2>/dev/null | test/bin/phpcbf.bash",
+      "cscheck": "test/bin/phpcs.bash emacs"
+  }
+}

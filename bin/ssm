@@ -1,0 +1,6 @@
+#!/usr/bin/php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+$app = new \SerpsStatus\Console();
+$app->runWithTry($argv);
