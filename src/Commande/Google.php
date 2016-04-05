@@ -24,6 +24,7 @@ class Google extends Command
         parent::init();
         $this->command('curl', '\SerpsStatus\Commande\Google\Curl');
         $this->command('phantomjs', '\SerpsStatus\Commande\Google\PhantomJs');
+        $this->command('spidyjs', '\SerpsStatus\Commande\Google\SpidyJs');
     }
 
     public function execute(){}

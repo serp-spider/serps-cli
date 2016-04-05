@@ -17,9 +17,11 @@
     "corneltek/cliframework": "~2.8.1",
 
     "serps/serps": "dev-master",
+    "serps/core": "dev-master",
     "serps/search-engine-google": "dev-master",
 
     "serps/http-client-phantomjs": "dev-master",
+    "serps/http-client-spidyjs": "dev-master",
     "serps/http-client-curl": "dev-master"
   },
 

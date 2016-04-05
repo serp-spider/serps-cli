@@ -12,7 +12,7 @@ class PhantomJs extends AbstractGoogleMonitoring
 {
     public function getHttpClient()
     {
-        return new PhantomJsClient();
+        return new PhantomJsClient("phantomjs2");
     }
 
 
