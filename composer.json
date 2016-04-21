@@ -16,7 +16,6 @@
     "php": ">=5.5.9",
     "corneltek/cliframework": "~2.8.1",
 
-    "serps/serps": "dev-master",
     "serps/core": "dev-master",
     "serps/search-engine-google": "dev-master",
 
@@ -28,7 +27,7 @@
   "require-dev":{
     "squizlabs/php_codesniffer": "~2.5"
   },
-  
+
   "scripts": {
       "csfix": "yes 2>/dev/null | test/bin/phpcbf.bash",
       "cscheck": "test/bin/phpcs.bash emacs"
