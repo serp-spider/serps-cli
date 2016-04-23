@@ -11,6 +11,8 @@ use CLIFramework\Command;
 use GetOptionKit\Option;
 use GetOptionKit\OptionCollection;
 use Serps\HttpClient\CurlClient;
+use Serps\HttpClient\PhantomJsClient;
+use Serps\HttpClient\SpidyJsClient;
 use Serps\SearchEngine\Google\GoogleClient;
 use Serps\SearchEngine\Google\GoogleUrl;
 
@@ -50,13 +52,21 @@ class Search extends Command
     }
 
 
-    public function execute($client, $keywords){
+    public function execute($keywords, $client = 'curl'){
 
         $httpClient = null;
+
         switch($client){
             case "curl":
                 $httpClient = new CurlClient();
+                break;
+            case "phantomjs":
+                $httpClient = new PhantomJsClient();
+                break;
+            case "spidyjs":
+                $httpClient = new SpidyJsClient();
         }
+
 
         $tld = $this->getOptionCollection()->getLongOption('tld')->getValue();
         if(!$tld){
@@ -85,7 +95,7 @@ class Search extends Command
 
 
         $data = [
-            'url' => $url->buildUrl(),
+            'url' => $response->getUrl()->buildUrl(),
             'evaluated' => $evaluated,
             'natural-results-count' => 0,
             'total-count' => $response->getNumberOfResults(),
