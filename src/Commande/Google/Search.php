@@ -15,6 +15,7 @@ use Serps\HttpClient\PhantomJsClient;
 use Serps\HttpClient\SpidyJsClient;
 use Serps\SearchEngine\Google\GoogleClient;
 use Serps\SearchEngine\Google\GoogleUrl;
+use Serps\SearchEngine\Google\NaturalResultType;
 
 class Search extends Command
 {
@@ -95,7 +96,9 @@ class Search extends Command
 
 
         $data = [
-            'url' => $response->getUrl()->buildUrl(),
+            'initial-url' => (string) $url,
+            'url' => (string) $response->getUrl(),
+            'http-client' => $client,
             'evaluated' => $evaluated,
             'natural-results-count' => 0,
             'total-count' => $response->getNumberOfResults(),
@@ -103,10 +106,17 @@ class Search extends Command
         ];
 
         foreach($items as $item){
-            $data['natural-results'][] = [
-                'types' => $item->getTypes(),
-                'title' => $item->title
+
+            $r = [
+                'types' => $item->getTypes()
             ];
+
+            if($item->is(NaturalResultType::CLASSICAL)){
+                $r['title'] = $item->title;
+                $r['url'] = (string) $item->url;
+            }
+
+            $data['natural-results'][] = $r;
         }
 
         $data['natural-results-count'] = count($data['natural-results']);
