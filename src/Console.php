@@ -3,7 +3,7 @@
  * @license see LICENSE
  */
 
-namespace SerpsStatus;
+namespace SerpsCli;
 
 use CLIFramework\Application;
 
@@ -12,6 +12,6 @@ class Console extends Application{
     public function init()
     {
         parent::init();
-        $this->command( 'google', '\SerpsStatus\Commande\Google' );
+        $this->command( 'google', '\SerpsCli\Commande\Google' );
     }
 }

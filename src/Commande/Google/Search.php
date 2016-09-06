@@ -3,13 +3,14 @@
  * @license see LICENSE
  */
 
-namespace SerpsStatus\Commande\Google;
+namespace SerpsCli\Commande\Google;
 
 
 use CLIFramework\ArgInfoList;
 use CLIFramework\Command;
 use GetOptionKit\Option;
 use GetOptionKit\OptionCollection;
+use Serps\Core\Http\Proxy;
 use Serps\HttpClient\CurlClient;
 use Serps\HttpClient\PhantomJsClient;
 use Serps\HttpClient\SpidyJsClient;
@@ -34,11 +35,6 @@ class Search extends Command
     public function arguments(ArgInfoList $args)
     {
         parent::arguments($args);
-        $args->add('http client')
-            ->desc('http client to use for the request')
-            ->isa('string')
-            ->validValues(['curl', 'phantomjs', 'spidyjs']);
-
         $args->add('keywords')
             ->desc('keywords to search for')
             ->isa('string');
@@ -48,32 +44,45 @@ class Search extends Command
     public function options(OptionCollection $opts)
     {
         parent::options($opts);
-        $opts->add('tld?', 'google tld to search');
+        $opts->add('tld?', 'google tld to search, e.g "--tld=co.uk" to search google.co.uk');
         $opts->add('lr?', 'language restriction');
+        $opts->add('http-client?')
+            ->isa('string')
+            ->validValues(['curl', 'phantomjs', 'spidyjs'])
+            ->defaultValue("curl")
+            ->desc('http client to use (default curl)');
+        $opts->add('proxy?')
+            ->isa('string')
+            ->desc('use the given proxy, e.g "--tld=http://my-proxy-host:8080"');
     }
 
 
-    public function execute($keywords, $client = 'curl'){
+    public function execute($keywords){
 
-        $httpClient = null;
-
+        $client = $this->getOptionCollection()->getLongOption('http-client')->getValue();
         switch($client){
-            case "curl":
-                $httpClient = new CurlClient();
-                break;
             case "phantomjs":
                 $httpClient = new PhantomJsClient();
                 break;
             case "spidyjs":
                 $httpClient = new SpidyJsClient();
+                break;
+            default:
+                $client = "curl";
+                $httpClient = new CurlClient();
         }
-
 
         $tld = $this->getOptionCollection()->getLongOption('tld')->getValue();
         if(!$tld){
             $tld = 'com';
         }
         $lr = $this->getOptionCollection()->getLongOption('lr')->getValue();
+
+        $proxyString = $this->getOptionCollection()->getLongOption('proxy')->getValue();
+        $proxy = null;
+        if($proxyString){
+            $proxy = Proxy::createFromString($proxyString);
+        }
 
         $googleClient = new GoogleClient($httpClient);
         $googleClient->request->setUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36');
@@ -85,12 +94,10 @@ class Search extends Command
         }
 
 
-        $response = $googleClient->query($url);
+        $response = $googleClient->query($url, $proxy);
 
         $evaluated = $response->javascriptIsEvaluated();
 
-
-        file_put_contents('/tmp/google-search.html', $response->getDom()->saveHTML());
         $naturalResults = $response->getNaturalResults();
         $items = $naturalResults->getItems();
 

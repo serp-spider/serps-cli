@@ -1,4 +1,12 @@
 {
+
+  "name": "serps/cli",
+  "description": "Command line utility to scrape from the terminal",
+  "type": "project",
+  "keywords": ["SERPS", "Google"],
+  "homepage": "https://github.com/serp-spider/serps-cli",
+  "license": "Fair",
+
   "authors": [
     {
       "name": "Soufiane GHZAL",
@@ -8,13 +16,17 @@
 
   "autoload":{
     "psr-4" : {
-      "SerpsStatus\\"   :   "src/"
+      "SerpsCli\\"   :   "src/"
     }
   },
 
+  "bin": [
+    "bin/serps"
+  ],
+
   "require": {
     "php": ">=5.5.9",
-    "corneltek/cliframework": "~2.8.1",
+    "corneltek/cliframework": "~3.0",
 
     "serps/core": "dev-master",
     "serps/search-engine-google": "dev-master",

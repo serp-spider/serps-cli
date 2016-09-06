@@ -3,7 +3,7 @@
  * @license see LICENSE
  */
 
-namespace SerpsStatus\Commande;
+namespace SerpsCli\Commande;
 
 use CLIFramework\Command;
 use Serps\HttpClient\CurlClient;
@@ -16,16 +16,13 @@ class Google extends Command
 
     public function brief()
     {
-        return 'Execute google tests.';
+        return 'Google related commands. "help google" for more info';
     }
 
     function init()
     {
         parent::init();
-        $this->command('curl', '\SerpsStatus\Commande\Google\Curl');
-        $this->command('phantomjs', '\SerpsStatus\Commande\Google\PhantomJs');
-        $this->command('spidyjs', '\SerpsStatus\Commande\Google\SpidyJs');
-        $this->command('search', '\SerpsStatus\Commande\Google\Search');
+        $this->command('search', '\SerpsCli\Commande\Google\Search');
     }
 
     public function execute(){}

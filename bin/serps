@@ -2,5 +2,5 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
-$app = new \SerpsStatus\Console();
+$app = new \SerpsCli\Console();
 $app->runWithTry($argv);
