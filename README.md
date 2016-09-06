@@ -1,5 +1,5 @@
-Status Monitor
-==============
+SERPS cli
+=========
 
 **This is a work in progress**
 
@@ -27,7 +27,9 @@ Google
 
 Search command allows to trigger a google search from the command line
 
-Usage:
+``serps google search "keyword"``
+
+#### example
 
 ```php
     $ serps google search "github"
@@ -98,14 +100,13 @@ Tip: In the example [jq](https://stedolan.github.io/jq/) helped to pretty format
 
 
 
-Advanced usage:
+#### Advanced usage
 
 ```php
     $ serps google search --tld="co.uk" --lr="lang_es" "some keywords" phantomjs
 ```
 
-
-use proxy
+With proxy:
 
 
 ```php
