@@ -1,8 +1,6 @@
 SERPS cli
 =========
 
-**This is a work in progress**
-
 Command line utility to scrape from the terminal
 
 Install
