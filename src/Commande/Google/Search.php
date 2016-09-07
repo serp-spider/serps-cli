@@ -109,9 +109,11 @@ class Search extends Command
             'evaluated' => $evaluated,
             'natural-results-count' => 0,
             'total-count' => $response->getNumberOfResults(),
-            'natural-results' => []
+            'natural-results' => [],
+            'related-searches' => []
         ];
 
+        // Feed natural-results
         foreach($items as $item){
 
             $r = [
@@ -124,6 +126,14 @@ class Search extends Command
             }
 
             $data['natural-results'][] = $r;
+        }
+
+        // Feed related-searches
+        foreach($response->getRelatedSearches() as $search){
+            $data['related-searches'][] = [
+                'title' => $search->title,
+                'url' => $search->url
+            ];
         }
 
         $data['natural-results-count'] = count($data['natural-results']);
