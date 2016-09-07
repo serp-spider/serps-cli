@@ -32,8 +32,9 @@ class Search extends Command
 
     }
 
-    public function arguments(ArgInfoList $args)
+    public function arguments($args)
     {
+        /* @var $args ArgInfoList */
         parent::arguments($args);
         $args->add('keywords')
             ->desc('keywords to search for')
@@ -41,8 +42,9 @@ class Search extends Command
     }
 
 
-    public function options(OptionCollection $opts)
+    public function options($opts)
     {
+        /* @var $opts OptionCollection */
         parent::options($opts);
         $opts->add('tld?', 'google tld to search, e.g "--tld=co.uk" to search google.co.uk');
         $opts->add('lr?', 'language restriction');
