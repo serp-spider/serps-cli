@@ -28,12 +28,11 @@
     "php": ">=5.5.9",
     "corneltek/cliframework": "~3.0",
 
-    "serps/core": "dev-master",
-    "serps/search-engine-google": "dev-master",
+    "serps/core": "~0.1.2",
+    "serps/search-engine-google": "~0.1.2",
 
-    "serps/http-client-phantomjs": "dev-master",
-    "serps/http-client-spidyjs": "dev-master",
-    "serps/http-client-curl": "dev-master"
+    "serps/http-client-phantomjs": "~0.1.0",
+    "serps/http-client-curl": "~0.1.0"
   },
 
   "require-dev":{
