@@ -25,5 +25,10 @@ class Google extends Command
         $this->command('search', '\SerpsCli\Commande\Google\Search');
     }
 
-    public function execute(){}
+    public function execute(){
+        echo "Please specify one sub-command: " . PHP_EOL;
+        foreach ($this->getCommands() as $c){
+            echo '- ' . $c->getName() . ' : ' . $c->brief() . PHP_EOL;
+        }
+    }
 }
