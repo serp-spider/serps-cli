@@ -111,3 +111,8 @@ With proxy:
     $ serps google search --proxy="http://proxy:8080" "some keywords"
 ```
 
+Page and result per page:
+
+```php
+    $ serps google search --page=2 --res-per-page=20 "some keywords"
+```

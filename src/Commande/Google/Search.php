@@ -56,6 +56,8 @@ class Search extends Command
         $opts->add('proxy?')
             ->isa('string')
             ->desc('use the given proxy, e.g "--tld=http://my-proxy-host:8080"');
+        $opts->add('page?', 'The google page number')->isTypeNumber();
+        $opts->add('res-per-page?', 'the number of results per page (max 100)')->isTypeNumber();
     }
 
 
@@ -86,11 +88,22 @@ class Search extends Command
             $proxy = Proxy::createFromString($proxyString);
         }
 
+        $page = $this->getOptionCollection()->getLongOption('page')->getValue();
+        if(!$page){
+            $page = 1;
+        }
+        $resPerPage = $this->getOptionCollection()->getLongOption('res-per-page')->getValue();
+        if(!$resPerPage){
+            $resPerPage = 10;
+        }
+
         $googleClient = new GoogleClient($httpClient);
         $googleClient->request->setUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36');
 
         $url = new GoogleUrl("google.$tld");
         $url->setSearchTerm($keywords);
+        $url->setPage($page);
+        $url->setResultsPerPage($resPerPage);
         if($lr){
             $url->setLanguageRestriction($lr);
         }
