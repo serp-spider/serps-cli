@@ -11,6 +11,7 @@ use CLIFramework\Command;
 use GetOptionKit\Option;
 use GetOptionKit\OptionCollection;
 use Serps\Core\Http\Proxy;
+use Serps\Exception;
 use Serps\HttpClient\CurlClient;
 use Serps\HttpClient\PhantomJsClient;
 use Serps\HttpClient\SpidyJsClient;
@@ -57,11 +58,17 @@ class Search extends Command
             ->isa('string')
             ->desc('use the given proxy, e.g "--tld=http://my-proxy-host:8080"');
         $opts->add('page?', 'The google page number')->isTypeNumber();
+        $opts->add('dump?', 'dump the dom into a file. Useful for debuging purpose.')
+            ->isa('string');
+        $opts->add('force-dump?', 'Force the dump option to overide if the file exists.')
+            ->isa('boolean');
         $opts->add('res-per-page?', 'the number of results per page (max 100)')->isTypeNumber();
     }
 
 
     public function execute($keywords){
+
+        // PARSE OPTIONS
 
         $client = $this->getOptionCollection()->getLongOption('http-client')->getValue();
         switch($client){
@@ -96,6 +103,20 @@ class Search extends Command
         if(!$resPerPage){
             $resPerPage = 10;
         }
+        // Allow to dump html response in a file
+        $dump = $this->getOptionCollection()->getLongOption('dump')->getValue();
+        if($dump){
+
+            $forceDump = $this->getOptionCollection()->getLongOption('force-dump')->getValue();
+
+            if(!$forceDump && file_exists($dump)){
+                throw new \Exception('file ' . $dump . ' already exists. Use --force-dump to allow file override.');
+            } elseif (!is_writable(dirname($dump))) {
+                throw new \Exception('file ' . $dump . ' cannot be written');
+            }
+        }
+
+        // PREPARE CLIENT
 
         $googleClient = new GoogleClient($httpClient);
         $googleClient->request->setUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36');
@@ -109,7 +130,23 @@ class Search extends Command
         }
 
 
+        // QUERY
+
         $response = $googleClient->query($url, $proxy);
+
+
+        // DUMP IF ASKED
+
+        if($dump){
+            $done = file_put_contents($dump, $response->getDom()->saveHTML());
+            if(!$done){
+                throw new \Exception('An error happened while dumping the file ' . $dump);
+            }
+        }
+
+
+
+        // OUTPUT RESULTS
 
         $evaluated = $response->javascriptIsEvaluated();
 
@@ -135,9 +172,20 @@ class Search extends Command
                 'types' => $item->getTypes()
             ];
 
-            if($item->is(NaturalResultType::CLASSICAL)){
+            if ($item->is(NaturalResultType::CLASSICAL)) {
                 $r['title'] = $item->title;
                 $r['url'] = (string) $item->url;
+            } elseif ($item->is(NaturalResultType::TOP_STORIES)){
+                $r['is_carousel'] = $item->is_carousel;
+                $news = [];
+                foreach($item->news as $newsItem){
+                    $news[] = [
+                        'title' => $newsItem->title,
+                        'url'   => $newsItem->url
+                    ];
+
+                }
+                $r['news'] = $news;
             }
 
             $data['natural-results'][] = $r;
