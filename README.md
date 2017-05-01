@@ -116,3 +116,19 @@ Page and result per page:
 ```php
     $ serps google search --page=2 --res-per-page=20 "some keywords"
 ```
+
+
+Dump page in a file:
+
+In a addition of printing the results you can save the dom in a file
+
+```php
+    $ serps google search --dump="/path/to/file.html" "some keywords"
+```
+
+By default the dump option wont be able to process if the file you specify already exists. The option force-dump
+makes it able to override an existing file:
+
+```php
+    $ serps google search --dump="/path/to/file.html" --force-dump=true "some keywords"
+```

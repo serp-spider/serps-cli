@@ -10,7 +10,9 @@ use CLIFramework\ArgInfoList;
 use CLIFramework\Command;
 use GetOptionKit\Option;
 use GetOptionKit\OptionCollection;
+use Serps\Core\Browser\Browser;
 use Serps\Core\Http\Proxy;
+use Serps\Core\Serp\ResultDataInterface;
 use Serps\Exception;
 use Serps\HttpClient\CurlClient;
 use Serps\HttpClient\PhantomJsClient;
@@ -61,6 +63,8 @@ class Search extends Command
         $opts->add('dump?', 'dump the dom into a file. Useful for debuging purpose.')
             ->isa('string');
         $opts->add('force-dump?', 'Force the dump option to overide if the file exists.')
+            ->isa('boolean');
+        $opts->add('mobile?', 'Use a mobile user agent string to get mobile results')
             ->isa('boolean');
         $opts->add('res-per-page?', 'the number of results per page (max 100)')->isTypeNumber();
     }
@@ -116,10 +120,20 @@ class Search extends Command
             }
         }
 
+        $isMobile = $this->getOptionCollection()->getLongOption('mobile')->getValue();
+
+        if($isMobile){
+            $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
+        } else {
+            $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
+        }
+
+
+
         // PREPARE CLIENT
 
-        $googleClient = new GoogleClient($httpClient);
-        $googleClient->request->setUserAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36');
+        $browser = new Browser($httpClient, $userAgent, null, null, $proxy);
+        $googleClient = new GoogleClient($browser);
 
         $url = new GoogleUrl("google.$tld");
         $url->setSearchTerm($keywords);
@@ -132,7 +146,7 @@ class Search extends Command
 
         // QUERY
 
-        $response = $googleClient->query($url, $proxy);
+        $response = $googleClient->query($url);
 
 
         // DUMP IF ASKED
@@ -172,21 +186,7 @@ class Search extends Command
                 'types' => $item->getTypes()
             ];
 
-            if ($item->is(NaturalResultType::CLASSICAL)) {
-                $r['title'] = $item->title;
-                $r['url'] = (string) $item->url;
-            } elseif ($item->is(NaturalResultType::TOP_STORIES)){
-                $r['is_carousel'] = $item->is_carousel;
-                $news = [];
-                foreach($item->news as $newsItem){
-                    $news[] = [
-                        'title' => $newsItem->title,
-                        'url'   => $newsItem->url
-                    ];
-
-                }
-                $r['news'] = $news;
-            }
+            $this->parseSingleResult($item, $r);
 
             $data['natural-results'][] = $r;
         }
@@ -205,6 +205,33 @@ class Search extends Command
 
 
 
+    }
+
+    private function parseSingleResult(ResultDataInterface $item, &$output){
+
+
+        if ($item->is(NaturalResultType::CLASSICAL)) {
+            $output['title'] = $item->title;
+            $output['url'] = (string) $item->url;
+
+
+        } elseif ($item->is(NaturalResultType::TOP_STORIES)){
+            $output['isCarousel'] = $item->isCarousel;
+            $news = [];
+            foreach($item->news as $newsItem){
+                $news[] = [
+                    'title' => $newsItem->title,
+                    'url'   => $newsItem->url
+                ];
+
+            }
+            $output['news'] = $news;
+
+
+        } elseif ($item->is(NaturalResultType::IMAGE_GROUP)) {
+            $output['isCarousel'] = $item->isCarousel;
+            $output['imagesCount'] = count($item->images);
+        }
     }
 
 }

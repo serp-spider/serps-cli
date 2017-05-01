@@ -24,15 +24,20 @@
     "bin/serps"
   ],
 
+
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+
   "require": {
     "php": ">=5.5.9",
     "corneltek/cliframework": "~3.0",
 
-    "serps/core": "~0.1.2",
-    "serps/search-engine-google": "~0.1.2",
+    "serps/core": "~0.2.0",
+    "serps/search-engine-google": "~0.2.0",
 
-    "serps/http-client-phantomjs": "~0.1.0",
-    "serps/http-client-curl": "~0.1.0"
+    "serps/http-client-phantomjs": "~0.2.0",
+    "serps/http-client-curl": "~0.2.0",
+    "zendframework/zend-diactoros": "^1.4"
   },
 
   "require-dev":{
