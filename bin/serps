@@ -13,4 +13,4 @@ foreach ($paths as $path) {
 }
 
 $app = new \SerpsCli\Console();
-$app->runWithTry($argv);
+$app->run();

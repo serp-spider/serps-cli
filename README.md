@@ -25,12 +25,12 @@ Google
 
 Search command allows to trigger a google search from the command line
 
-``serps google search "keyword"``
+``serps google:search "keyword"``
 
 #### example
 
 ```php
-    $ serps google search "github"
+    $ serps google:search "github"
     {
       "natural-results": [
         {
@@ -94,27 +94,27 @@ Search command allows to trigger a google search from the command line
 ```
 
 Tip: In the example [jq](https://stedolan.github.io/jq/) helped to pretty format the outputted json:
-``$ serps google search "github" | jq '.'``
+``$ serps google:search "github" | jq '.'``
 
 
 
 #### Advanced usage
 
 ```php
-    $ serps google search --tld="co.uk" --lr="lang_es" "some keywords" phantomjs
+    $ serps google:search --tld="co.uk" --lr="lang_es" "some keywords" phantomjs
 ```
 
 With proxy:
 
 
 ```php
-    $ serps google search --proxy="http://proxy:8080" "some keywords"
+    $ serps google:search --proxy="http://proxy:8080" "some keywords"
 ```
 
 Page and result per page:
 
 ```php
-    $ serps google search --page=2 --res-per-page=20 "some keywords"
+    $ serps google:search --page=2 --res-per-page=20 "some keywords"
 ```
 
 
@@ -123,12 +123,12 @@ Dump page in a file:
 In a addition of printing the results you can save the dom in a file
 
 ```php
-    $ serps google search --dump="/path/to/file.html" "some keywords"
+    $ serps google:search --dump="/path/to/file.html" "some keywords"
 ```
 
 By default the dump option wont be able to process if the file you specify already exists. The option force-dump
 makes it able to override an existing file:
 
 ```php
-    $ serps google search --dump="/path/to/file.html" --force-dump=true "some keywords"
+    $ serps google:search --dump="/path/to/file.html" --force-dump=true "some keywords"
 ```

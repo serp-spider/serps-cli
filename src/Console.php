@@ -5,13 +5,15 @@
 
 namespace SerpsCli;
 
-use CLIFramework\Application;
 
-class Console extends Application{
+use SerpsCli\Commande\Google\Search as GoogleSearch;
+use Symfony\Component\Console\Application;
 
-    public function init()
+class Console extends Application {
+
+    public function __construct()
     {
-        parent::init();
-        $this->command( 'google', '\SerpsCli\Commande\Google' );
+        parent::__construct('SERPS', '1.0');
+        $this->add(new GoogleSearch());
     }
 }

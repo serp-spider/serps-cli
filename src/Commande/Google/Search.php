@@ -6,10 +6,6 @@
 namespace SerpsCli\Commande\Google;
 
 
-use CLIFramework\ArgInfoList;
-use CLIFramework\Command;
-use GetOptionKit\Option;
-use GetOptionKit\OptionCollection;
 use Serps\Core\Browser\Browser;
 use Serps\Core\Http\Proxy;
 use Serps\Core\Serp\ResultDataInterface;
@@ -20,6 +16,11 @@ use Serps\HttpClient\SpidyJsClient;
 use Serps\SearchEngine\Google\GoogleClient;
 use Serps\SearchEngine\Google\GoogleUrl;
 use Serps\SearchEngine\Google\NaturalResultType;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Search extends Command
 {
@@ -29,52 +30,89 @@ class Search extends Command
         return 'Make a google search.';
     }
 
-    function init()
+    public function configure()
     {
-        parent::init();
+        $this
+            ->setName('google:search')
+            ->setDescription('Make a google search')
+            ->addArgument('keywords', InputArgument::REQUIRED, 'keywords to search for');
 
+
+        $this->addOption(
+            'tld',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'google tld to search, e.g "--tld=co.uk" to search google.co.uk',
+            'com'
+        );
+
+        $this->addOption(
+            'lr',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'language restriction'
+        );
+
+        $this->addOption(
+            'http-client',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'http client to use (default curl)',
+            'curl'
+        );
+
+        $this->addOption(
+            'proxy',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'use the given proxy, e.g "--proxy=http://my-proxy-host:8080"'
+        );
+
+        $this->addOption(
+            'page',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The google page number',
+            1
+        );
+
+        $this->addOption(
+            'dump',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'dump the dom into a file. Useful for debuging purpose.'
+        );
+
+        $this->addOption(
+            'force-dump',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Force the dump option to overide if the file exists.'
+        );
+
+        $this->addOption(
+            'mobile',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Use a mobile user agent string to get mobile results.'
+        );
+
+        $this->addOption(
+            'res-per-page',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'The number of results per page (max 100).',
+            10
+        );
     }
 
-    public function arguments($args)
-    {
-        /* @var $args ArgInfoList */
-        parent::arguments($args);
-        $args->add('keywords')
-            ->desc('keywords to search for')
-            ->isa('string');
-    }
 
 
-    public function options($opts)
-    {
-        /* @var $opts OptionCollection */
-        parent::options($opts);
-        $opts->add('tld?', 'google tld to search, e.g "--tld=co.uk" to search google.co.uk');
-        $opts->add('lr?', 'language restriction');
-        $opts->add('http-client?')
-            ->isa('string')
-            ->validValues(['curl', 'phantomjs', 'spidyjs'])
-            ->defaultValue("curl")
-            ->desc('http client to use (default curl)');
-        $opts->add('proxy?')
-            ->isa('string')
-            ->desc('use the given proxy, e.g "--tld=http://my-proxy-host:8080"');
-        $opts->add('page?', 'The google page number')->isTypeNumber();
-        $opts->add('dump?', 'dump the dom into a file. Useful for debuging purpose.')
-            ->isa('string');
-        $opts->add('force-dump?', 'Force the dump option to overide if the file exists.')
-            ->isa('boolean');
-        $opts->add('mobile?', 'Use a mobile user agent string to get mobile results')
-            ->isa('boolean');
-        $opts->add('res-per-page?', 'the number of results per page (max 100)')->isTypeNumber();
-    }
-
-
-    public function execute($keywords){
+    public function execute(InputInterface $input, OutputInterface $output){
 
         // PARSE OPTIONS
 
-        $client = $this->getOptionCollection()->getLongOption('http-client')->getValue();
+        $client = $input->getOption('http-client');
         switch($client){
             case "phantomjs":
                 $httpClient = new PhantomJsClient();
@@ -87,31 +125,23 @@ class Search extends Command
                 $httpClient = new CurlClient();
         }
 
-        $tld = $this->getOptionCollection()->getLongOption('tld')->getValue();
-        if(!$tld){
-            $tld = 'com';
-        }
-        $lr = $this->getOptionCollection()->getLongOption('lr')->getValue();
+        $tld = $input->getOption('tld');
+        $lr = $input->getOption('lr');
 
-        $proxyString = $this->getOptionCollection()->getLongOption('proxy')->getValue();
+        $proxyString = $input->getOption('proxy');
         $proxy = null;
         if($proxyString){
             $proxy = Proxy::createFromString($proxyString);
         }
 
-        $page = $this->getOptionCollection()->getLongOption('page')->getValue();
-        if(!$page){
-            $page = 1;
-        }
-        $resPerPage = $this->getOptionCollection()->getLongOption('res-per-page')->getValue();
-        if(!$resPerPage){
-            $resPerPage = 10;
-        }
+        $page = $input->getOption('page');
+        $resPerPage = $input->getOption('res-per-page');
+
         // Allow to dump html response in a file
-        $dump = $this->getOptionCollection()->getLongOption('dump')->getValue();
+        $dump = $input->getOption('dump');
         if($dump){
 
-            $forceDump = $this->getOptionCollection()->getLongOption('force-dump')->getValue();
+            $forceDump = $input->getOption('force-dump');
 
             if(!$forceDump && file_exists($dump)){
                 throw new \Exception('file ' . $dump . ' already exists. Use --force-dump to allow file override.');
@@ -120,7 +150,7 @@ class Search extends Command
             }
         }
 
-        $isMobile = $this->getOptionCollection()->getLongOption('mobile')->getValue();
+        $isMobile = $input->getOption('mobile');
 
         if($isMobile){
             $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
@@ -128,7 +158,7 @@ class Search extends Command
             $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
         }
 
-
+        $keywords = $input->getArgument('keywords');
 
         // PREPARE CLIENT
 
@@ -201,9 +231,7 @@ class Search extends Command
 
         $data['natural-results-count'] = count($data['natural-results']);
 
-        echo json_encode($data, JSON_PRETTY_PRINT);
-
-
+        $output->write(json_encode($data, JSON_PRETTY_PRINT));
 
     }
 
