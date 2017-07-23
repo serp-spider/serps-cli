@@ -132,3 +132,11 @@ makes it able to override an existing file:
 ```php
     $ serps google:search --dump="/path/to/file.html" --force-dump=true "some keywords"
 ```
+
+
+Read and parse a html google file saved locally instead of doing http query
+
+
+```php
+    $ serps google:search --file=./google--search-file.html "some keywords"
+```

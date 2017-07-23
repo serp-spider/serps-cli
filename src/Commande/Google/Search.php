@@ -6,6 +6,7 @@
 namespace SerpsCli\Commande\Google;
 
 
+use function file_get_contents;
 use Serps\Core\Browser\Browser;
 use Serps\Core\Http\Proxy;
 use Serps\Core\Serp\ResultDataInterface;
@@ -16,6 +17,7 @@ use Serps\HttpClient\SpidyJsClient;
 use Serps\SearchEngine\Google\GoogleClient;
 use Serps\SearchEngine\Google\GoogleUrl;
 use Serps\SearchEngine\Google\NaturalResultType;
+use Serps\SearchEngine\Google\Page\GoogleSerp;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -104,6 +106,13 @@ class Search extends Command
             'The number of results per page (max 100).',
             10
         );
+
+        $this->addOption(
+            'file',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Parse a local file instead of doing a http call.'
+        );
     }
 
 
@@ -112,27 +121,10 @@ class Search extends Command
 
         // PARSE OPTIONS
 
-        $client = $input->getOption('http-client');
-        switch($client){
-            case "phantomjs":
-                $httpClient = new PhantomJsClient();
-                break;
-            case "spidyjs":
-                $httpClient = new SpidyJsClient();
-                break;
-            default:
-                $client = "curl";
-                $httpClient = new CurlClient();
-        }
+
 
         $tld = $input->getOption('tld');
         $lr = $input->getOption('lr');
-
-        $proxyString = $input->getOption('proxy');
-        $proxy = null;
-        if($proxyString){
-            $proxy = Proxy::createFromString($proxyString);
-        }
 
         $page = $input->getOption('page');
         $resPerPage = $input->getOption('res-per-page');
@@ -150,20 +142,11 @@ class Search extends Command
             }
         }
 
-        $isMobile = $input->getOption('mobile');
-
-        if($isMobile){
-            $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
-        } else {
-            $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
-        }
 
         $keywords = $input->getArgument('keywords');
 
-        // PREPARE CLIENT
 
-        $browser = new Browser($httpClient, $userAgent, null, null, $proxy);
-        $googleClient = new GoogleClient($browser);
+
 
         $url = new GoogleUrl("google.$tld");
         $url->setSearchTerm($keywords);
@@ -174,9 +157,55 @@ class Search extends Command
         }
 
 
-        // QUERY
+        $file = $input->getOption('file');
 
-        $response = $googleClient->query($url);
+        if($file){
+            // OPEN A FILE
+
+            $response = new GoogleSerp(file_get_contents($file), $url);
+        } else {
+            // QUERY
+
+            // USER AGENT
+
+            $isMobile = $input->getOption('mobile');
+
+            if($isMobile){
+                $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
+            } else {
+                $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
+            }
+
+
+            // PROXY
+
+            $proxyString = $input->getOption('proxy');
+            $proxy = null;
+            if($proxyString){
+                $proxy = Proxy::createFromString($proxyString);
+            }
+
+
+            // PREPARE CLIENT
+
+            $client = $input->getOption('http-client');
+            switch($client){
+                case "phantomjs":
+                    $httpClient = new PhantomJsClient();
+                    break;
+                case "spidyjs":
+                    $httpClient = new SpidyJsClient();
+                    break;
+                default:
+                    $client = "curl";
+                    $httpClient = new CurlClient();
+            }
+
+            $browser = new Browser($httpClient, $userAgent, null, null, $proxy);
+            $googleClient = new GoogleClient($browser);
+
+            $response = $googleClient->query($url);
+        }
 
 
         // DUMP IF ASKED
@@ -201,7 +230,7 @@ class Search extends Command
         $data = [
             'initial-url' => (string) $url,
             'url' => (string) $response->getUrl(),
-            'http-client' => $client,
+            'http-client' => isset($client) ? $client : null,
             'evaluated' => $evaluated,
             'natural-results-count' => 0,
             'total-count' => $response->getNumberOfResults(),
