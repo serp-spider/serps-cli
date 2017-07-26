@@ -104,21 +104,27 @@ Tip: In the example [jq](https://stedolan.github.io/jq/) helped to pretty format
     $ serps google:search --tld="co.uk" --lr="lang_es" "some keywords" phantomjs
 ```
 
-With proxy:
+**With proxy**:
 
 
 ```php
     $ serps google:search --proxy="http://proxy:8080" "some keywords"
 ```
 
-Page and result per page:
+**Page and result per page**:
 
 ```php
     $ serps google:search --page=2 --res-per-page=20 "some keywords"
 ```
 
+**User Ageng**:
 
-Dump page in a file:
+```php
+    $ serps google:search --user-agent="..." "some keywords"
+```
+
+
+**Dump page in a file**:
 
 In a addition of printing the results you can save the dom in a file
 
@@ -134,7 +140,7 @@ makes it able to override an existing file:
 ```
 
 
-Read and parse a html google file saved locally instead of doing http query
+Read and parse a **html google file saved locally** instead of doing http query
 
 
 ```php

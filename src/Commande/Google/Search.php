@@ -23,6 +23,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use function var_dump;
 
 class Search extends Command
 {
@@ -88,15 +89,22 @@ class Search extends Command
         $this->addOption(
             'force-dump',
             null,
-            InputOption::VALUE_OPTIONAL,
+            null,
             'Force the dump option to overide if the file exists.'
         );
 
         $this->addOption(
             'mobile',
             null,
-            InputOption::VALUE_OPTIONAL,
+            null,
             'Use a mobile user agent string to get mobile results.'
+        );
+
+        $this->addOption(
+            'user-agent',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'custom user agent to set for the search'
         );
 
         $this->addOption(
@@ -168,13 +176,27 @@ class Search extends Command
 
             // USER AGENT
 
+            $userAgent = $input->getOption('user-agent');
+
             $isMobile = $input->getOption('mobile');
 
-            if($isMobile){
-                $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
+
+            if (!$userAgent) {
+                if ($isMobile) {
+                    $userAgent = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Mobile Safari/537.36';
+                } else {
+                    $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
+                }
             } else {
-                $userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.75 Chrome/55.0.2883.75 Safari/537.36';
+                if ($isMobile && $output->isVerbose()) {
+                    $output->writeln(
+                        '<info>You used both of --mobile and --user-agent option, '
+                        . 'the given user agent string will be used instead of the default mobile user agent</info>'
+                    );
+                }
             }
+
+
 
 
             // PROXY
