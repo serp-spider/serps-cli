@@ -19,6 +19,7 @@ use Serps\SearchEngine\Google\GoogleUrl;
 use Serps\SearchEngine\Google\NaturalResultType;
 use Serps\SearchEngine\Google\Page\GoogleSerp;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -38,7 +39,7 @@ class Search extends Command
         $this
             ->setName('google:search')
             ->setDescription('Make a google search')
-            ->addArgument('keywords', InputArgument::REQUIRED, 'keywords to search for');
+            ->addArgument('keywords', InputArgument::OPTIONAL, 'keywords to search for');
 
 
         $this->addOption(
@@ -83,14 +84,14 @@ class Search extends Command
             'dump',
             null,
             InputOption::VALUE_OPTIONAL,
-            'dump the dom into a file. Useful for debuging purpose.'
+            'dump the dom into the given file. Useful for debugging purpose.'
         );
 
         $this->addOption(
             'force-dump',
             null,
             null,
-            'Force the dump option to overide if the file exists.'
+            'Force the dump option to override if the file exists.'
         );
 
         $this->addOption(
@@ -127,10 +128,19 @@ class Search extends Command
 
     public function execute(InputInterface $input, OutputInterface $output){
 
+        // get keyword
+        $keywords = $input->getArgument('keywords');
+
+        // get file
+        $file = $input->getOption('file');
+
+        // file or keyword is required
+        if (!$keywords && !$file) {
+            throw new RuntimeException('You have to specify keywords to search for a a file (--file) to parse.');
+        }
+
+
         // PARSE OPTIONS
-
-
-
         $tld = $input->getOption('tld');
         $lr = $input->getOption('lr');
 
@@ -143,18 +153,13 @@ class Search extends Command
 
             $forceDump = $input->getOption('force-dump');
 
+            // TODO: checked again before saving (race condition)
             if(!$forceDump && file_exists($dump)){
                 throw new \Exception('file ' . $dump . ' already exists. Use --force-dump to allow file override.');
             } elseif (!is_writable(dirname($dump))) {
                 throw new \Exception('file ' . $dump . ' cannot be written');
             }
         }
-
-
-        $keywords = $input->getArgument('keywords');
-
-
-
 
         $url = new GoogleUrl("google.$tld");
         $url->setSearchTerm($keywords);
@@ -165,7 +170,7 @@ class Search extends Command
         }
 
 
-        $file = $input->getOption('file');
+
 
         if($file){
             // OPEN A FILE
@@ -254,6 +259,7 @@ class Search extends Command
             'url' => (string) $response->getUrl(),
             'http-client' => isset($client) ? $client : null,
             'evaluated' => $evaluated,
+            'isMobileDom' => $response->isMobile(),
             'natural-results-count' => 0,
             'total-count' => $response->getNumberOfResults(),
             'natural-results' => [],
@@ -289,24 +295,43 @@ class Search extends Command
     private function parseSingleResult(ResultDataInterface $item, &$output){
 
 
+        // CLASSICAL
         if ($item->is(NaturalResultType::CLASSICAL)) {
             $output['title'] = $item->title;
             $output['url'] = (string) $item->url;
 
 
-        } elseif ($item->is(NaturalResultType::TOP_STORIES)){
+        // TOP STORIES
+        } elseif ($item->is(NaturalResultType::TOP_STORIES)) {
             $output['isCarousel'] = $item->isCarousel;
             $news = [];
-            foreach($item->news as $newsItem){
+            foreach ($item->news as $newsItem) {
                 $news[] = [
                     'title' => $newsItem->title,
-                    'url'   => $newsItem->url
+                    'url' => $newsItem->url
                 ];
 
             }
             $output['news'] = $news;
 
 
+        // VIDEO GROUP
+        } elseif ($item->is(NaturalResultType::VIDEO_GROUP)) {
+
+            $output['videos'] = [];
+
+            foreach ($item->videos as $video) {
+                $output['videos'][] = ['title' => $video->title];
+            }
+
+
+        // KNOWLEDGE
+        } elseif ($item->is(NaturalResultType::KNOWLEDGE)) {
+
+            $output['title'] = $item->title;
+
+
+        // IMAGE GROUP
         } elseif ($item->is(NaturalResultType::IMAGE_GROUP)) {
             $output['isCarousel'] = $item->isCarousel;
             $output['imagesCount'] = count($item->images);
