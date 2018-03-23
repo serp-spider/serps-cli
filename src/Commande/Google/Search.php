@@ -161,7 +161,7 @@ class Search extends Command
             }
         }
 
-        $url = new GoogleUrl("google.$tld");
+        $url = new GoogleUrl("www.google.$tld");
         $url->setSearchTerm($keywords);
         $url->setPage($page);
         $url->setResultsPerPage($resPerPage);
