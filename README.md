@@ -123,6 +123,13 @@ Tip: In the example [jq](https://stedolan.github.io/jq/) helped to pretty format
     $ serps google:search --user-agent="..." "some keywords"
 ```
 
+**Mobile search**
+
+This is an alertnative to the user agent option to use an hard coded mobile user agent
+
+```php
+    $ serps google:search --mobile "some keywords"
+```
 
 **Dump page in a file**:
 
