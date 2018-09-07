@@ -33,7 +33,7 @@
     "symfony/console": "^3.3",
 
     "serps/core": "~0.3.0",
-    "serps/search-engine-google": "~0.3.0",
+    "serps/search-engine-google": "~0.3.0|~0.4.0",
 
     "serps/http-client-phantomjs": "~0.2.0",
     "serps/http-client-curl": "~0.2.0",
